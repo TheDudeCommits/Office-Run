@@ -46,5 +46,5 @@ This checklist records the current five-level campaign build. A phase is complet
 - [x] Update deterministic campaign and rendered-product tests.
 - [x] Run the complete typecheck, lint, build, and test suite.
 - [x] Verify menu, Joi animation, jump/duck, no-scroll controls, retry, and responsive layout in a real browser.
-- [ ] Push the verified update to `AmirTheDude69/Office-Run`.
-- [ ] Redeploy and verify the public production URL.
+- [x] Push the verified update to `AmirTheDude69/Office-Run`.
+- [x] Redeploy and verify the public production URL.
