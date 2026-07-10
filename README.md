@@ -4,6 +4,8 @@
 
 Office Run is a responsive pixel-art endless runner about dodging the work nobody asked for. Play as Chip Deadline—or turn a photo into a local pixel avatar—then jump meetings, duck calendar invites, survive the Circle-Back Boss, and protect your last three points of sanity.
 
+**Play now:** https://office-run-amir-69.thedude6.chatgpt.site
+
 ![Office Run social preview](public/og.png)
 
 ## Features
@@ -77,3 +79,5 @@ Office Run’s source code is provided in this repository. Third-party assets re
 ## Deployment
 
 The application compiles to an edge-compatible production build and requires no database or runtime secret. Build with `npm run build`; the repository’s hosting configuration is in `.openai/hosting.json`.
+
+The public production deployment is available at [office-run-amir-69.thedude6.chatgpt.site](https://office-run-amir-69.thedude6.chatgpt.site).

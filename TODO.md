@@ -70,12 +70,12 @@ This file is the authoritative build loop. A phase is complete only when every i
 
 - [x] Add deterministic unit tests for helpers and game data.
 - [x] Replace starter tests with product-specific rendered-output checks.
-- [ ] Run lint, tests, and production build; resolve failures.
-- [ ] Verify the complete game flow in a real browser, including mobile layout and avatar upload.
-- [ ] Confirm zero secrets, starter artifacts, unclear-license assets, or broken links are committed.
+- [x] Run lint, tests, and production build; resolve failures.
+- [x] Verify the complete game flow in a real browser, including mobile layout and the local avatar conversion path.
+- [x] Confirm zero secrets, starter artifacts, unclear-license assets, or broken links are committed.
 - [x] Update README with controls, architecture, privacy, licenses, and local development.
-- [ ] Commit and push the completed project to `AmirTheDude69/Office-Run`.
-- [ ] Deploy publicly and verify the production URL.
-- [ ] Perform a requirement-by-requirement completion audit.
+- [x] Commit and push the completed project to `AmirTheDude69/Office-Run`.
+- [x] Deploy publicly and verify the production URL.
+- [x] Perform a requirement-by-requirement completion audit.
 
 **Exit gate:** GitHub contains the verified source and the public URL supports a complete play session.
