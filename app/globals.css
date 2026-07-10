@@ -337,13 +337,36 @@ a {
   text-align: right;
 }
 
-.hudQuarter {
+.hudLevel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
+  width: min(330px, 32vw);
   color: var(--yellow);
   font-size: clamp(7px, 0.9vw, 10px);
+  text-align: center;
+}
+
+.hudLevel small {
+  color: var(--mint);
+  font-size: 6px;
+}
+
+.levelTrack {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  background: #3d4760;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.levelTrack i {
+  display: block;
+  height: 100%;
+  background: var(--yellow);
+  transition: width 120ms linear;
 }
 
 .bossAlert {
@@ -354,22 +377,93 @@ a {
   animation: boss-pulse 480ms steps(2, end) infinite;
 }
 
-.sanityMeter {
+.batteryWrap {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.batteryWrap > strong {
+  color: var(--white);
+  font-size: 9px;
+}
+
+.batteryShell {
+  position: relative;
+  width: clamp(76px, 11vw, 125px);
+  height: 16px;
+  padding: 2px;
+  border: 3px solid var(--white);
+  background: var(--ink);
+}
+
+.batteryShell::after {
+  position: absolute;
+  top: 3px;
+  right: -7px;
+  width: 5px;
+  height: 6px;
+  background: var(--white);
+  content: "";
+}
+
+.batteryFill {
+  display: block;
+  height: 100%;
+  background: var(--mint);
+  transition: width 160ms steps(3, end);
+}
+
+.batteryFill.drained { background: var(--yellow); }
+.batteryFill.critical { background: var(--coral); }
+
+.levelPicker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 14px;
+}
+
+.levelPicker button {
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 5px;
+  padding: 5px;
+  border: 2px solid #6d7892;
+  background: #121a30;
+  color: #aeb9d0;
+  cursor: pointer;
 }
 
-.sanity {
-  display: inline-grid;
-  width: 22px;
-  height: 20px;
-  place-items: center;
-  color: #65708b;
-  font-size: 17px;
+.levelPicker button[aria-pressed="true"] {
+  border-color: var(--yellow);
+  background: var(--purple);
+  color: var(--white);
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
-.sanity.active {
-  color: var(--coral);
+.levelPicker button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.levelPicker b {
+  color: var(--yellow);
+  font-size: 10px;
+}
+
+.levelPicker span {
+  overflow: hidden;
+  width: 100%;
+  font-size: 5px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .screenOverlay {
@@ -478,7 +572,7 @@ kbd {
   font-family: var(--pixel);
 }
 
-.avatarCard {
+.joiCard {
   position: relative;
   align-self: center;
   padding: clamp(16px, 2vw, 24px);
@@ -500,23 +594,23 @@ kbd {
   font-size: 7px;
 }
 
-.avatarPreview {
+.joiPreview {
   display: grid;
-  aspect-ratio: 1;
-  margin: 3px 0 15px;
+  height: clamp(120px, 17vw, 190px);
+  margin: 3px 0 12px;
   place-items: center;
   overflow: hidden;
   border: 5px solid var(--ink);
   background:
     linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%) 0 0 / 16px 16px,
-    var(--avatar-accent, var(--blue));
+    var(--blue);
   image-rendering: pixelated;
 }
 
-.avatarPreview img {
-  width: 100%;
+.joiPreview img {
+  width: auto;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   image-rendering: pixelated;
 }
 
@@ -582,6 +676,24 @@ kbd {
   color: var(--ink);
   font-size: clamp(8px, 1vw, 11px);
   line-height: 1.5;
+}
+
+.bestieBrief {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px;
+  border: 3px dashed var(--ink);
+  background: var(--mint);
+  font-family: ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.bestieBrief b {
+  font-family: var(--pixel);
+  font-size: 7px;
 }
 
 .privacyNote,
@@ -652,6 +764,25 @@ kbd {
   font-size: 7px;
   line-height: 1.5;
   transform: rotate(8deg);
+}
+
+.reviewStamp.approved {
+  border-color: var(--mint);
+  color: var(--mint);
+}
+
+.successOverlay h2 {
+  color: var(--mint);
+}
+
+.finalOverlay h2 {
+  color: var(--yellow);
+}
+
+.overlayActions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
 }
 
 .reviewStats {
@@ -936,14 +1067,43 @@ kbd {
   .menuOverlay {
     grid-template-columns: minmax(0, 1.4fr) minmax(170px, 0.62fr);
     gap: 20px;
-    padding: 30px;
+    padding: 18px 24px;
   }
 
-  .avatarCard {
+  .menuCopy h2 {
+    font-size: clamp(20px, 4vw, 34px);
+  }
+
+  .menuCopy > p:not(.overlayKicker):not(.keyHint) {
+    margin: 9px 0 11px;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .menuCopy .pixelButton {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+
+  .levelPicker {
+    margin-bottom: 8px;
+  }
+
+  .joiCard {
     padding: 14px;
   }
 
-  .privacyNote,
+  .joiPreview {
+    height: 126px;
+    margin-bottom: 7px;
+  }
+
+  .avatarMeta {
+    gap: 4px;
+    margin-bottom: 7px;
+  }
+
+  .bestieBrief span,
   .avatarMeta span {
     display: none;
   }
@@ -1008,27 +1168,25 @@ kbd {
   }
 
   .menuOverlay {
-    grid-template-columns: 1.45fr 0.55fr;
-    gap: 10px;
-    padding: 18px;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 12px 18px;
   }
 
   .menuCopy .overlayKicker,
   .keyHint,
   .folderTab,
-  .avatarMeta,
-  .textButton {
+    .avatarMeta {
     display: none;
   }
 
   .menuCopy h2 {
-    font-size: clamp(17px, 5vw, 24px);
+    font-size: clamp(17px, 5vw, 22px);
+    line-height: 1.08;
   }
 
   .menuCopy > p:not(.overlayKicker):not(.keyHint) {
-    margin: 9px 0 12px;
-    font-size: 9px;
-    line-height: 1.35;
+    display: none;
   }
 
   .pixelButton {
@@ -1039,21 +1197,38 @@ kbd {
     font-size: 6px;
   }
 
-  .avatarCard {
-    padding: 5px;
-    border-width: 3px;
-    box-shadow: 4px 4px 0 var(--purple);
+  .joiCard {
+    display: none;
   }
 
-  .avatarPreview {
+  .joiPreview {
+    height: 112px;
     margin: 0 0 5px;
     border-width: 3px;
   }
 
-  .avatarCard .pixelButton {
-    min-height: 30px;
-    padding: 4px;
-    font-size: 4px;
+  .bestieBrief {
+    padding: 5px;
+    border-width: 2px;
+    font-size: 5px;
+  }
+
+  .levelPicker {
+    gap: 3px;
+    margin-bottom: 7px;
+  }
+
+  .levelPicker button {
+    min-height: 29px;
+    padding: 2px;
+  }
+
+  .levelPicker b {
+    font-size: 7px;
+  }
+
+  .levelPicker span {
+    display: none;
   }
 
   .hud {
@@ -1067,16 +1242,37 @@ kbd {
     font-size: 10px;
   }
 
-  .hudQuarter,
+  .hudLevel,
   .hudLabel,
   .hudMini {
     font-size: 4px;
   }
 
-  .sanity {
-    width: 13px;
-    height: 12px;
-    font-size: 10px;
+  .hudLevel {
+    gap: 3px;
+  }
+
+  .hudLevel small {
+    font-size: 3px;
+  }
+
+  .levelTrack {
+    height: 5px;
+    border-width: 1px;
+  }
+
+  .batteryShell {
+    width: 48px;
+    height: 10px;
+    border-width: 2px;
+  }
+
+  .batteryWrap {
+    gap: 4px;
+  }
+
+  .batteryWrap > strong {
+    font-size: 5px;
   }
 
   .reviewOverlay {
@@ -1106,6 +1302,10 @@ kbd {
     gap: 3px;
     padding: 5px 2px;
     border-right-width: 2px;
+  }
+
+  .overlayActions {
+    gap: 6px;
   }
 
   .reviewStats small {

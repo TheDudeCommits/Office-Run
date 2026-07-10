@@ -9,43 +9,43 @@ async function render(pathname = "/") {
 
   return worker.fetch(
     new Request(`https://office-run.example${pathname}`, {
-      headers: {
-        accept: "text/html",
-        host: "office-run.example",
-        "x-forwarded-host": "office-run.example",
-        "x-forwarded-proto": "https",
-      },
+      headers: { accept: "text/html", host: "office-run.example", "x-forwarded-host": "office-run.example", "x-forwarded-proto": "https" },
     }),
-    {
-      ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
-    },
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
     { waitUntil() {}, passThroughOnException() {} },
   );
 }
 
-test("server renders the finished Office Run product and social metadata", async () => {
+test("server renders the Joi campaign and social metadata", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
 
   assert.match(html, /<title>Office Run — Escape the 9-to-5<\/title>/i);
-  assert.match(html, /OFFICE RUN/);
-  assert.match(html, /RUN FROM RESPONSIBILITY/);
-  assert.match(html, /UPLOAD YOUR PHOTO/);
-  assert.match(html, /YOUR PHOTO NEVER LEAVES THIS BROWSER/);
-  assert.match(html, /https:\/\/office-run\.example\/og\.png/);
+  assert.match(html, /A FIVE-LEVEL CORPORATE ESCAPE/);
+  assert.match(html, /START LEVEL/);
+  assert.match(html, /JOI/);
+  assert.match(html, /SOCIAL BATTERY/);
+  assert.match(html, /BESTIE BOB/);
+  assert.match(html, /https:\/\/office-run\.example\/og-joi\.png/);
   assert.match(html, /manifest\.webmanifest/);
-  assert.doesNotMatch(html, /codex-preview|Your site is taking shape|SkeletonPreview/i);
+  assert.doesNotMatch(html, /UPLOAD YOUR PHOTO|Chip Deadline|codex-preview|Your site is taking shape/i);
 });
 
-test("release assets and privacy-sensitive files have the expected shape", async () => {
+test("release assets and Joi animation files have the expected shape", async () => {
   const root = new URL("../", import.meta.url);
   const required = [
-    "public/og.png",
+    "public/og-joi.png",
     "public/manifest.webmanifest",
     "public/sw.js",
     "public/assets/office/tileset.png",
+    "public/assets/joi/joi-run.png",
+    "public/assets/joi/joi-idle.png",
+    "public/assets/joi/joi-celebrate.png",
+    "public/assets/joi/joi-sad.png",
+    "public/assets/joi/source-running-right.gif",
+    "public/assets/joi/source-spritesheet.webp",
     "public/assets/licenses/kenney-ui-audio-license.txt",
     "public/audio/jump.ogg",
     "docs/GDD.md",
@@ -54,16 +54,24 @@ test("release assets and privacy-sensitive files have the expected shape", async
   ];
   await Promise.all(required.map((path) => access(new URL(path, root))));
 
-  const image = await stat(new URL("public/og.png", root));
+  const [image, runSheet] = await Promise.all([
+    stat(new URL("public/og-joi.png", root)),
+    stat(new URL("public/assets/joi/joi-run.png", root)),
+  ]);
   assert.ok(image.size > 100_000);
+  assert.ok(runSheet.size > 20_000);
 
-  const [component, gitignore, assetLedger] = await Promise.all([
+  const [component, engine, gitignore, assetLedger] = await Promise.all([
     readFile(new URL("app/components/OfficeRun.tsx", root), "utf8"),
+    readFile(new URL("game/createOfficeRunGame.ts", root), "utf8"),
     readFile(new URL(".gitignore", root), "utf8"),
     readFile(new URL("ASSETS.md", root), "utf8"),
   ]);
-  assert.match(component, /createPixelAvatar/);
-  assert.doesNotMatch(component, /OPENAI_API_KEY|fetch\([^)]*avatar|\/api\/avatar/);
+  assert.match(component, /stopGameScroll/);
+  assert.match(engine, /joi-running/);
+  assert.match(engine, /sacrificeBestie/);
+  assert.match(engine, /spawnCoffee/);
+  assert.doesNotMatch(component, /OPENAI_API_KEY|\/api\/avatar/);
   assert.match(gitignore, /\.env\*/);
-  assert.match(assetLedger, /Creative Commons Zero \(CC0/);
+  assert.match(assetLedger, /project owner/i);
 });

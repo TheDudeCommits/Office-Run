@@ -3,40 +3,44 @@ import test from "node:test";
 
 import {
   ENEMIES,
+  LEVELS,
   POWER_UPS,
-  QUARTER_SECONDS,
-  getDifficulty,
+  getLevel,
+  getLevelDifficulty,
+  getLevelEnemies,
   getMultiplier,
   getPerformanceReview,
-  getUnlockedEnemies,
 } from "../game/config.ts";
-import { hashPixels, profileFromHash, quantizeChannel } from "../app/lib/avatar.ts";
 
-test("difficulty ramps while preserving the four-quarter fiscal cycle", () => {
-  const start = getDifficulty(0);
-  const q4 = getDifficulty(QUARTER_SECONDS * 3 + 1);
-  const yearTwo = getDifficulty(QUARTER_SECONDS * 4 + 1);
-  const late = getDifficulty(1_000);
-
-  assert.deepEqual(
-    { quarter: start.quarter, fiscalYear: start.fiscalYear, speed: start.speed },
-    { quarter: 1, fiscalYear: 1, speed: 280 },
-  );
-  assert.equal(q4.quarter, 4);
-  assert.equal(yearTwo.quarter, 1);
-  assert.equal(yearTwo.fiscalYear, 2);
-  assert.ok(q4.speed > start.speed);
-  assert.ok(q4.spawnGap < start.spawnGap);
-  assert.equal(late.speed, 660);
-  assert.equal(late.spawnGap, 0.78);
+test("the campaign has five finite, increasingly demanding levels", () => {
+  assert.equal(LEVELS.length, 5);
+  assert.deepEqual(LEVELS.map((level) => level.id), [1, 2, 3, 4, 5]);
+  assert.ok(LEVELS.every((level) => level.targetDistance > 0));
+  assert.ok(LEVELS.every((level, index) => index === 0 || level.targetDistance > LEVELS[index - 1].targetDistance));
+  assert.equal(getLevel(99).id, 5);
+  assert.equal(getLevel(-4).id, 1);
+  assert.equal(LEVELS[4].boss, true);
 });
 
-test("the roster contains distinct enemy families and all agreed power-ups", () => {
+test("difficulty ramps inside each level without removing reaction time", () => {
+  for (const level of LEVELS) {
+    const start = getLevelDifficulty(level.id, 0);
+    const finish = getLevelDifficulty(level.id, 1);
+    assert.equal(start.speed, level.baseSpeed);
+    assert.equal(finish.speed, level.maxSpeed);
+    assert.ok(finish.speed > start.speed);
+    assert.ok(finish.spawnGap < start.spawnGap);
+    assert.ok(finish.spawnGap >= 0.8);
+  }
+});
+
+test("enemy variety expands by level and Bestie Bob is a real power-up", () => {
   assert.ok(Object.keys(ENEMIES).length >= 10);
-  assert.deepEqual(Object.keys(POWER_UPS).sort(), ["coffee", "headphones", "inbox", "pto", "wfh"]);
-  assert.deepEqual(getUnlockedEnemies(0), ["small-talk"]);
-  assert.ok(getUnlockedEnemies(80).includes("reply-all"));
-  assert.ok(!getUnlockedEnemies(1_000).includes("boss"));
+  assert.deepEqual(Object.keys(POWER_UPS).sort(), ["bestie", "headphones", "inbox", "pto", "wfh"]);
+  assert.deepEqual(getLevelEnemies(1), ["small-talk", "chair", "calendar"]);
+  assert.ok(getLevelEnemies(5).includes("reply-all"));
+  assert.ok(!getLevelEnemies(5).includes("boss"));
+  assert.match(POWER_UPS.bestie.description, /one hit/i);
   assert.ok(new Set(Object.values(ENEMIES).map((enemy) => enemy.cue)).size >= 9);
 });
 
@@ -45,15 +49,4 @@ test("streak multiplier is bounded and performance reviews are deterministic", (
   assert.equal(getMultiplier(5), 2);
   assert.equal(getMultiplier(999), 5);
   assert.equal(getPerformanceReview(4_200, 21), getPerformanceReview(4_200, 21));
-});
-
-test("avatar palette helpers are deterministic and safely quantized", () => {
-  assert.equal(quantizeChannel(-10), 0);
-  assert.equal(quantizeChannel(255), 255);
-  assert.equal(quantizeChannel(127), 102);
-  const pixels = new Uint8ClampedArray([12, 34, 56, 255, 200, 145, 90, 255]);
-  const hash = hashPixels(pixels);
-  assert.equal(hash, hashPixels(pixels));
-  assert.deepEqual(profileFromHash(hash), profileFromHash(hash));
-  assert.match(profileFromHash(hash).accent, /^#[0-9a-f]{6}$/i);
 });

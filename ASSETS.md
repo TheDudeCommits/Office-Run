@@ -28,7 +28,7 @@ Office Run uses original code-drawn game art plus the following license-safe ass
   - `public/audio/hit.ogg` from `Audio/switch31.ogg`
   - `public/audio/milestone.ogg` from `Audio/switch35.ogg`
 - **License copy:** `public/assets/licenses/kenney-ui-audio-license.txt`
-- **Use:** menus, jumps, pickups, collisions, and quarter/boss stingers.
+- **Use:** menus, jumps, pickups, collisions, level clears, and boss stingers.
 - **Modifications:** renamed; runtime volume and playback-rate variation only.
 
 ## Press Start 2P
@@ -42,9 +42,24 @@ Office Run uses original code-drawn game art plus the following license-safe ass
 
 ## Original project assets
 
-- Chip Deadline, enemy sprites, power-up icons, particles, backgrounds, UI frames, CRT treatment, and the custom-avatar compositor are original, deterministic code-drawn assets created for Office Run.
+- Enemy sprites, Bestie Bob, power-up icons, particles, backgrounds, UI frames, and CRT treatment are original, deterministic code-drawn assets created for Office Run.
 - The social preview card is an original generated promotional image created specifically for this repository and is not used as gameplay art.
 - Procedural chiptune music is synthesized at runtime with the Web Audio API and does not sample a third-party recording.
+
+## Joi protagonist artwork — supplied by the project owner
+
+- **Source:** files supplied directly by the Office Run project owner on 2026-07-10.
+- **License/rights:** user-provided artwork; not relicensed here. The project owner is responsible for confirming they hold the rights required for publication and distribution.
+- **Original files:**
+  - `public/assets/joi/source-running-right.gif`
+  - `public/assets/joi/source-spritesheet.webp`
+- **Runtime derivatives:**
+  - `public/assets/joi/joi-run.png` — eight GIF frames arranged as one horizontal run sheet.
+  - `public/assets/joi/joi-idle.png` — idle pose extracted from the supplied sprite sheet.
+  - `public/assets/joi/joi-celebrate.png` — victory pose extracted from the supplied sprite sheet.
+  - `public/assets/joi/joi-sad.png` — failure pose extracted from the supplied sprite sheet.
+- **Use:** fixed playable protagonist and employee-file portrait.
+- **Modifications:** deterministic frame extraction, transparent canvas normalization, and sprite-sheet assembly only; the character artwork itself was not regenerated.
 
 ## License policy
 

@@ -1,222 +1,155 @@
 # Office Run — Game Design Document
 
-**Version:** 1.0
-**Status:** Production baseline
-**Genre:** Endless runner / workplace satire
+**Version:** 2.0
+
+**Status:** Five-level campaign
+
+**Genre:** Retro obstacle runner / workplace satire
+
 **Platforms:** Desktop and mobile web
-**Audience:** Anyone who has survived a “quick sync” that was neither quick nor a sync
 
 ## 1. High concept
 
-Office Run is a fast, replayable pixel-art endless runner about escaping an increasingly absurd workday. The player controls Chip Deadline, an exhausted office worker sprinting through cubicles, meeting rooms, executive floors, and eventually a surreal corporate nightmare. Coworkers, bosses, calendar invites, follow-up emails, printer jams, and weaponized small talk become distinct mechanical hazards.
+Office Run is a fast pixel-art campaign about Joi escaping an increasingly absurd workday. Coworkers, bosses, calendar invites, printer jams, follow-up emails, and weaponized small talk become mechanically distinct hazards. The immediate readability of a one-button runner is expanded with double-jumps, ducking, power-ups, a Social Battery, finite levels, and a final boss.
 
-The game takes the immediate readability of the offline dinosaur runner as a genre reference, then adds its own identity: multiple defensive moves, sanity points, power-ups, enemy behaviors, milestone “quarters,” boss events, punch-line speech bubbles, local avatar creation, and a dense retro office world.
+The comedy is chaotic corporate absurdism: familiar office phrases become threats, benefits become contraband, and Joi’s most reliable teammate is Bestie Bob.
 
 ## 2. Design pillars
 
-1. **Readable at full panic.** Every hazard has a strong silhouette, color, movement tell, and reliable counter.
-2. **One more quarterly report.** Restarts are instant, runs are score-driven, and difficulty rises smoothly enough to make each failure feel beatable.
-3. **Corporate absurdism as mechanics.** A meeting is not just a reskinned cactus: it blocks space, follows, mirrors, swarms, interrupts, or changes the rules in a way that matches its joke.
-4. **Personal without being invasive.** Players can turn a photo into a local pixel avatar; the image stays on their device and is never sent to a server.
-5. **Juicy, not noisy.** Screen shake, particles, callouts, and sound make actions satisfying while reduced-motion and mute controls keep the game comfortable.
+1. **Readable at full panic.** Every hazard has a strong silhouette, motion tell, and reliable counter.
+2. **Finite victories.** Each level has a finish line, a distinct enemy mix, and a meaningful completion state.
+3. **Corporate jokes as mechanics.** Meetings change lanes, HR mirrors jumps, micromanagers chase, and Reply All arrives as a swarm.
+4. **Recovery creates risk.** Coffee appears often but in demanding aerial lanes, forcing players to trade safety for Social Battery.
+5. **Friendship is armor.** Bestie Bob visibly joins Joi and absorbs one collision before being dragged into the corporate void.
 
-## 3. Player fantasy and tone
+## 3. Core loop
 
-The fantasy is not “winning at work.” It is maintaining just enough sanity to make it out of the building while the corporation collapses into calendar-colored chaos behind you.
+1. Select any unlocked level.
+2. Run automatically as Joi while the office scrolls right-to-left.
+3. Jump, double-jump, duck, and deploy held benefits to avoid hazards.
+4. Catch elevated coffee to restore 34% Social Battery.
+5. Find Bestie Bob; he runs beside Joi until he sacrifices himself on the next unshielded collision.
+6. Reach the level’s target distance, clear the results screen, and unlock the next stage.
+7. Beat the level-five Circle-Back Boss to escape the org chart.
 
-The humor is chaotic, ironic, and mocking rather than realistic or mean-spirited. Copy targets recognizable phrases:
-
-- “Got a minute?”
-- “Let’s take this offline.”
-- “Friendly reminder.”
-- “Per my last email.”
-- “Can you own this?”
-- “Let’s circle back.”
-- “Quick sync?”
-- “We’re a family.”
-
-No real companies, trademarks, or identifiable coworkers appear in the game.
-
-## 4. Core loop
-
-1. Start a run as Chip Deadline or a locally generated custom avatar.
-2. Automatically sprint through the current office quarter.
-3. Jump, double-jump, duck, and use timed power-ups to avoid hazards.
-4. Earn distance, task-avoidance points, close-call bonuses, and streak multipliers.
-5. Cross a quarter milestone; the environment, enemy mix, speed, and music intensity change.
-6. Survive boss events and increasingly hostile obstacle combinations.
-7. Lose all three sanity points, receive a satirical performance review, and restart instantly.
-
-## 5. Controls
+## 4. Controls
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
-| Start / jump | Space, W, or Arrow Up | Tap JUMP |
-| Double-jump | Press jump again while airborne | Tap JUMP again |
+| Start / jump | Space, W, or Arrow Up | JUMP |
+| Double-jump | Jump again in the air | JUMP again |
 | Duck / slide | S or Arrow Down | Hold DUCK |
-| Pause | P or Escape | Tap pause |
-| Activate held power-up | E or Enter | Tap power-up badge |
-| Mute | M | Tap audio button |
+| Pause | P or Escape | PAUSE |
+| Activate held benefit | E or Enter | Held-asset button |
 
-The game is landscape-first but remains playable on portrait mobile screens with a reduced-height HUD and large thumb controls.
+Space and arrow keys are captured during the game and never scroll the browser page.
 
-## 6. Player systems
+## 5. Player systems
+
+### Joi
+
+Joi is the fixed protagonist. Her supplied transparent animation frames are used directly for running, idle, victory, and failure states. She keeps a consistent collision box independent of transparent sprite padding.
 
 ### Movement
 
-- Constant forward motion is represented by the office moving from right to left.
-- Base speed starts at roughly 280 world units per second.
-- Speed increases continuously and receives a step increase at each quarter.
-- Jump uses a consistent arc; releasing early shortens the first jump.
-- One mid-air double-jump provides recovery without trivializing low hazards.
-- Duck reduces the collision height and becomes a slide while moving.
+- Constant forward motion is represented by the office moving past Joi.
+- Each level has a starting and maximum speed, with a smooth ramp based on level progress.
+- Releasing jump early shortens the arc.
+- One mid-air double-jump provides recovery.
+- Ducking shrinks Joi’s collision box and visual height.
 
-### Sanity
+### Social Battery
 
-- The player begins with three sanity points.
-- A collision removes one point and grants a short invulnerability period.
-- At zero sanity, the run ends.
-- Hardcore mode unlocks after a milestone and makes every collision terminal.
+- Joi starts each level at 100%.
+- A normal collision removes 34%, with a brief recovery window.
+- Coffee restores 34%, capped at 100%.
+- At 0%, the level ends in a satirical performance review.
+- Optional one-hit mode makes a collision remove the full battery.
 
-### Scoring
+### Bestie Bob
 
-- Distance score rises continuously.
-- Avoided hazards award task-avoidance points based on difficulty.
-- Close calls award a small bonus.
-- Consecutive clean avoids build a multiplier up to 5×.
-- Taking damage resets the multiplier.
-- Best score and recent runs are stored locally on the device.
+- Bob is an automatic-use collectible, separate from the held-benefit slot.
+- Once collected, a visible Bob companion runs behind Joi.
+- On Joi’s next otherwise-damaging collision, Bob absorbs the hit, disappears in a sacrifice animation, and Joi loses no battery.
+- Existing shields resolve before Bob so his save is not wasted.
 
-## 7. Enemy roster
+### Scoring and persistence
 
-| Hazard | Corporate joke | Behavior | Primary counter |
-| --- | --- | --- | --- |
-| Small-Talk Coworker | “Any plans this weekend?” | Standard ground walker with an early speech tell | Jump |
-| Rolling Office Chair | Abandoned ergonomic liability | Small, very fast ground hazard | Jump early |
-| Flying Calendar Invite | “Quick sync?” | Alternates between high and mid air lanes | Duck or jump by lane |
-| Printer Jam | “PC LOAD LETTER” | Wide stationary hitbox with smoke tell | Double-jump |
-| Follow-Up Email | “Friendly reminder” | Zigzags vertically and accelerates | Read lane, then commit |
-| HR Representative | “Safe space check-in” | Mirrors the player’s first jump after a delay | Fake or double-jump |
-| Meeting Manager | “Let’s take this offline” | Slides laterally and changes lane once | Delay jump |
-| Micromanager | “Just checking in” | Chases from behind until cleanly avoided | Maintain momentum |
-| Reply-All Storm | “Thanks!” | A short staggered swarm of email projectiles | Rhythm jumps and ducks |
-| Circle-Back Boss | “Let’s revisit in Q4” | Large hitbox; hops, sends invites, and forces patterns | Read multi-step tells |
+- Distance raises score continuously.
+- Clean avoids, close calls, and streak multipliers award bonuses up to 5×.
+- Collisions reset streak.
+- Best score, unlocked level, settings, and three recent attempts persist in localStorage.
 
-Enemy colors communicate families: people are coral/purple, email hazards are cyan, machinery is yellow/red, and bosses use white with warning magenta.
+## 6. Campaign
 
-## 8. Power-ups
+| Level | Theme | Distance | Speed | Enemy focus |
+| --- | --- | ---: | --- | --- |
+| 1. Cubicle Onboarding | Learn the escape route | 180m | 270–345 | Small talk, chairs, calendar invites |
+| 2. Meeting Room Maze | Every door is a quick sync | 230m | 315–400 | Printer jams and zigzag follow-ups added |
+| 3. Open-Plan Panic | No walls, privacy, or mercy | 285m | 355–450 | HR jump mirrors and moving meetings |
+| 4. Executive Escalation | Visibility becomes a liability | 340m | 400–510 | Micromanagers and Reply-All swarms |
+| 5. The All-Hands Escape | Outrun the org chart | 410m | 440–565 | Full roster plus Circle-Back Boss |
 
-| Power-up | Effect | Duration / use |
+Spawn gaps tighten within each level but never fall below the reaction-time floor. The final boss begins around two-thirds through level five and must be survived before the campaign completes.
+
+## 7. Hazard roster
+
+| Hazard | Behavior | Primary counter |
 | --- | --- | --- |
-| Coffee | Faster score gain and collision immunity | Short automatic burst |
-| Noise-Canceling Headphones | Ignores people and speech hazards | Timed shield |
-| PTO Request | Slows the world without slowing the player | Timed slow motion |
-| Inbox Zero | Clears current email hazards | Instant |
-| Work From Home | Phases through all hazards in a glitchy home-office overlay | Rare timed state |
+| Small-Talk Coworker | Standard walker | Jump |
+| Rolling Office Chair | Fast, low ground hazard | Jump early |
+| Flying Calendar Invite | High or mid air lane | Read lane, then duck or jump |
+| Printer Jam | Wide hitbox | Double-jump |
+| Follow-Up Email | Vertical zigzag | Commit after reading movement |
+| HR Representative | Mirrors Joi’s first jump | Fake or double-jump |
+| Meeting Manager | Changes lane | Delay movement |
+| Micromanager | Alters speed to follow | Maintain clean momentum |
+| Reply-All Storm | Three-message swarm | Rhythm jumps and ducks |
+| Circle-Back Boss | Launches mixed email patterns | Survive the full all-hands event |
 
-Only one held power-up can be stored. Coffee activates on pickup; the others may be activated immediately through the power-up control.
+## 8. Collectibles and benefits
 
-## 9. Progression and pacing
+| Item | Behavior |
+| --- | --- |
+| Coffee | Frequent automatic pickup, placed in high-risk aerial lanes; restores 34% battery |
+| Bestie Bob | Automatic companion; blocks one otherwise-damaging collision |
+| Noise-Canceling Headphones | Held; temporarily ignores people hazards |
+| PTO Request | Held; slows the office |
+| Inbox Zero | Held; clears current email hazards |
+| Work From Home | Held; temporarily phases through all hazards |
 
-Runs are endless, divided into repeating corporate quarters:
+Only one manual benefit can be held. Coffee and Bob activate immediately and do not consume that slot.
 
-1. **Q1 — Cubicle Onboarding:** teaches one hazard at a time.
-2. **Q2 — Meeting Room Maze:** adds lane changes, air hazards, and pairs.
-3. **Q3 — Executive Floor:** introduces chasers, mimics, and reduced spawn gaps.
-4. **Q4 — Synergy Singularity:** surreal palette shift, mixed patterns, and a boss event.
+## 9. Art and audio direction
 
-Each quarter lasts approximately 25–35 seconds depending on speed. After Q4, the cycle continues as “Fiscal Year 2+” with higher speed, denser combinations, and shorter warning windows. Difficulty is capped at a level that remains visually parsable.
+- 16-bit-inspired interface at a 960×540 internal canvas with nearest-neighbor scaling.
+- Deep navy interiors, cream paper, coffee yellow, mint friendship, cyan email effects, and magenta executive warnings.
+- Joi’s user-supplied source art remains exact; no generative reinterpretation is used for gameplay.
+- Code-drawn hazards and icons maintain clear silhouettes.
+- CC0 office décor and UI sound effects are documented in `ASSETS.md`.
+- A lightweight Web Audio chiptune reacts to speed.
 
-### Difficulty model
+## 10. Interface and accessibility
 
-- World speed = base speed + elapsed-time ramp + quarter bonus, capped.
-- Minimum spawn gap shrinks gradually but never below the reaction-time floor.
-- Complex enemy types unlock by elapsed time.
-- Pattern selection rejects impossible combinations using estimated jump and duck windows.
-- Boss events temporarily replace ordinary spawning with authored patterns.
+- Level-select menu shows five numbered stages and locked progression.
+- In-level HUD shows score, level progress, Social Battery, streak, coffee count, Bob status, and boss alert.
+- Completion, campaign-complete, and battery-empty screens have distinct copy and actions.
+- Keyboard and touch parity, visible focus, high contrast, semantic shell controls, mute toggles, pause, and reduced motion are supported.
+- Gameplay meaning is not conveyed by color alone.
 
-## 10. Avatar personalization
+## 11. Technical design
 
-The default protagonist is **Chip Deadline**: loosened tie, laptop bag, coffee-powered running form, and the emotional posture of someone who has seen 47 unread Slack threads.
+- React / TypeScript shell with Phaser for real-time play.
+- Phaser emits accessible state to React for HUD and overlays.
+- No backend, authentication, analytics, photo upload, or runtime secret.
+- Static/serverless-compatible production build with offline asset caching.
+- Tests cover campaign balance, enemy data, rendered product copy, and required Joi assets.
 
-Players may upload a photo. The browser:
+## 12. Definition of done
 
-1. center-crops the image;
-2. reduces it to a small pixel grid;
-3. quantizes the colors;
-4. creates a face tile used by the runner;
-5. derives a cosmetic shirt accent and a playful, randomized corporate title from a non-identifying image hash;
-6. stores the resulting small pixel avatar locally.
-
-The source photo is not uploaded, persisted, or sent to an AI provider. The custom avatar can be reset at any time.
-
-## 11. Art direction
-
-- 16-bit-inspired pixel art rendered with nearest-neighbor scaling.
-- Internal game canvas: 960 × 540, responsive fit.
-- Deep navy office interiors with warm cream paper, hazard coral, coffee yellow, mint highlights, electric cyan email effects, and magenta executive warnings.
-- Parallax layers: skyline, fluorescent wall panels, desks/windows, floor tiles, and foreground clutter.
-- Sprites are code-drawn from hard-edged pixel rectangles for a coherent original cast.
-- Licensed CC0 office art is used as environmental dressing and tiny framed portraits.
-- CRT scanlines and dithered gradients are decorative and reduced or disabled with reduced-motion mode.
-
-## 12. Audio direction
-
-- Short CC0 UI sounds are repurposed for jumps, hits, pickups, menus, and milestones.
-- Background music is a lightweight procedural chiptune generated with the Web Audio API so it can react to speed without shipping an unclear music license.
-- Music and sound effects have separate toggles.
-- Browsers begin audio only after the first player gesture.
-
-## 13. Interface
-
-### Start screen
-
-- Strong OFFICE RUN title lockup.
-- “Escape the 9-to-5. Keep your sanity.”
-- Primary RUN FROM RESPONSIBILITY button.
-- Avatar card with Chip/default and photo upload.
-- Compact controls and accessibility settings.
-
-### In-run HUD
-
-- Score, best, current quarter/fiscal year.
-- Three sanity indicators.
-- Streak multiplier.
-- Held power-up and timer.
-- Pause, audio, and reduced-motion controls.
-
-### Game-over review
-
-- Final score, distance, tasks avoided, quarter reached, and best score.
-- Randomized satirical performance-review headline.
-- Instant “TRY ANOTHER QUARTER” action.
-
-## 14. Accessibility
-
-- Keyboard and touch parity.
-- Visible focus styles and semantic buttons outside the canvas.
-- Reduced-motion mode disables shake, heavy parallax, and rapid CRT flicker.
-- No gameplay meaning is communicated by color alone.
-- Text and controls meet high-contrast targets.
-- Music and SFX can be muted independently.
-- Pausing does not punish the player.
-
-## 15. Technical design
-
-- React / TypeScript shell with Phaser for the game runtime.
-- Game state is emitted to React for accessible HUD and overlays.
-- LocalStorage stores preferences, avatar output, and high scores only.
-- No authentication, analytics, backend, or API key is required.
-- Static/serverless-compatible build suitable for a global edge host.
-- Unit tests cover deterministic helpers, asset paths, and rendered product metadata.
-- Browser verification covers start, jump, duck, pause, restart, avatar upload, responsive layout, and console health.
-
-## 16. Definition of done
-
-- Playable on current desktop and mobile browsers.
-- Distinct enemy behaviors, progressive speed, bosses, power-ups, scoring, sanity, pause, and restart all work.
-- Default and custom local avatars work without external data transmission.
-- Audio, accessibility settings, and local high scores persist.
-- GDD, phased TODO, asset/license ledger, README, tests, and deployment configuration are present.
-- Repository is pushed to `AmirTheDude69/Office-Run`.
-- A public live URL loads and supports a complete run.
+- All five levels start, escalate, finish, unlock, and replay correctly.
+- Joi’s animation, jumping, ducking, collision, victory, and failure states work.
+- Social Battery, coffee recovery, Bestie Bob, held benefits, scoring, pause, and persistence work.
+- Space and arrow controls do not move the browser page.
+- Current desktop/mobile browsers render a complete playable flow with no console errors.
+- Source is pushed to `AmirTheDude69/Office-Run` and the public URL is updated.

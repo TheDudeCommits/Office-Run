@@ -1,11 +1,12 @@
-export type GameScreen = "menu" | "playing" | "paused" | "gameover";
+export type GameScreen =
+  | "menu"
+  | "playing"
+  | "paused"
+  | "gameover"
+  | "levelcomplete"
+  | "gamecomplete";
 
-export type PowerUpKind =
-  | "coffee"
-  | "headphones"
-  | "pto"
-  | "inbox"
-  | "wfh";
+export type PowerUpKind = "bestie" | "headphones" | "pto" | "inbox" | "wfh";
 
 export type EnemyKind =
   | "small-talk"
@@ -26,24 +27,21 @@ export type Settings = {
   hardcore: boolean;
 };
 
-export type AvatarProfile = {
-  dataUrl: string | null;
-  accent: string;
-  title: string;
-  custom: boolean;
-};
-
 export type GameStats = {
   screen: GameScreen;
   score: number;
   best: number;
-  sanity: number;
+  socialBattery: number;
   streak: number;
   multiplier: number;
-  quarter: number;
-  fiscalYear: number;
+  level: number;
+  levelName: string;
+  levelProgress: number;
+  unlockedLevel: number;
   tasksAvoided: number;
   distance: number;
+  coffees: number;
+  bestieActive: boolean;
   powerUp: PowerUpKind | null;
   powerRemaining: number;
   review: string;
@@ -52,15 +50,15 @@ export type GameStats = {
 };
 
 export type GameCommand =
-  | { type: "start" }
+  | { type: "start"; level?: number }
+  | { type: "menu" }
   | { type: "jump" }
   | { type: "jump-release" }
   | { type: "duck"; active: boolean }
   | { type: "pause" }
   | { type: "use-powerup" }
   | { type: "settings"; settings: Settings }
-  | { type: "avatar"; avatar: AvatarProfile }
-  | { type: "hydrate-best"; best: number };
+  | { type: "hydrate-progress"; best: number; unlockedLevel: number };
 
 export type GameCallbacks = {
   onStats: (stats: GameStats) => void;
@@ -73,24 +71,21 @@ export const DEFAULT_SETTINGS: Settings = {
   hardcore: false,
 };
 
-export const DEFAULT_AVATAR: AvatarProfile = {
-  dataUrl: null,
-  accent: "#63d9ff",
-  title: "Spreadsheet Sprinter",
-  custom: false,
-};
-
 export const INITIAL_STATS: GameStats = {
   screen: "menu",
   score: 0,
   best: 0,
-  sanity: 3,
+  socialBattery: 100,
   streak: 0,
   multiplier: 1,
-  quarter: 1,
-  fiscalYear: 1,
+  level: 1,
+  levelName: "CUBICLE ONBOARDING",
+  levelProgress: 0,
+  unlockedLevel: 1,
   tasksAvoided: 0,
   distance: 0,
+  coffees: 0,
+  bestieActive: false,
   powerUp: null,
   powerRemaining: 0,
   review: "",

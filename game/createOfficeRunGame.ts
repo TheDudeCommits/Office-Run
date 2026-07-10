@@ -5,18 +5,17 @@ import {
   GAME_HEIGHT,
   GAME_WIDTH,
   GROUND_Y,
+  LEVELS,
   POWER_UPS,
-  QUARTERS,
-  getDifficulty,
+  getLevel,
+  getLevelDifficulty,
+  getLevelEnemies,
   getMultiplier,
   getPerformanceReview,
-  getUnlockedEnemies,
 } from "./config";
 import {
-  DEFAULT_AVATAR,
   DEFAULT_SETTINGS,
   INITIAL_STATS,
-  type AvatarProfile,
   type EnemyKind,
   type GameCallbacks,
   type GameCommand,
@@ -43,7 +42,7 @@ type Hazard = {
 
 type Pickup = {
   object: Phaser.GameObjects.Container;
-  kind: PowerUpKind;
+  kind: PowerUpKind | "coffee";
   phase: number;
 };
 
@@ -73,9 +72,9 @@ function clamp(value: number, min: number, max: number) {
 class OfficeScene extends Phaser.Scene {
   private callbacks: GameCallbacks;
   private settings: Settings = { ...DEFAULT_SETTINGS };
-  private avatar: AvatarProfile = { ...DEFAULT_AVATAR };
 
   private player!: Phaser.Physics.Arcade.Sprite;
+  private bestie: Phaser.GameObjects.Container | null = null;
   private ground!: Phaser.GameObjects.Rectangle;
   private wall!: Phaser.GameObjects.Rectangle;
   private glow!: Phaser.GameObjects.Rectangle;
@@ -94,31 +93,35 @@ class OfficeScene extends Phaser.Scene {
   private elapsed = 0;
   private score = 0;
   private best = 0;
-  private sanity = 3;
+  private socialBattery = 100;
+  private level = 1;
+  private unlockedLevel = 1;
   private streak = 0;
   private tasksAvoided = 0;
   private distance = 0;
+  private coffees = 0;
+  private bestieActive = false;
   private review = "";
   private newBest = false;
   private heldPower: PowerUpKind | null = null;
   private powerRemaining = 0;
   private spawnTimer = 1.1;
   private pickupTimer = 8;
+  private coffeeTimer = 4;
   private bossProjectileTimer = 0;
   private bossRemaining = 0;
-  private lastAbsoluteQuarter = 0;
+  private bossSpawned = false;
   private lastHazard: EnemyKind | null = null;
   private invulnerableRemaining = 0;
   private peopleShieldRemaining = 0;
   private slowRemaining = 0;
-  private coffeeRemaining = 0;
   private wfhRemaining = 0;
   private jumpsUsed = 0;
   private ducking = false;
   private stateEmitTimer = 0;
   private runTime = 0;
   private worldSpeed = 280;
-  private avatarLoadId = 0;
+  private readonly joiScale = 0.43;
 
   private musicContext: AudioContext | null = null;
   private nextNoteAt = 0;
@@ -138,6 +141,10 @@ class OfficeScene extends Phaser.Scene {
     this.load.audio("sfx-power", "/audio/powerup.ogg");
     this.load.audio("sfx-hit", "/audio/hit.ogg");
     this.load.audio("sfx-milestone", "/audio/milestone.ogg");
+    this.load.spritesheet("joi-run", "/assets/joi/joi-run.png", { frameWidth: 192, frameHeight: 208 });
+    this.load.image("joi-idle", "/assets/joi/joi-idle.png");
+    this.load.image("joi-celebrate", "/assets/joi/joi-celebrate.png");
+    this.load.image("joi-sad", "/assets/joi/joi-sad.png");
   }
 
   create() {
@@ -145,7 +152,6 @@ class OfficeScene extends Phaser.Scene {
     this.createWorld();
     this.createPlayer();
     this.bindInputs();
-    this.applyAvatar(this.avatar);
     this.emitStats(true);
   }
 
@@ -194,7 +200,6 @@ class OfficeScene extends Phaser.Scene {
 
     this.makeEnemyTextures();
     this.makePowerTextures();
-    this.drawPlayerTexture();
   }
 
   private makeTexture(
@@ -391,6 +396,18 @@ class OfficeScene extends Phaser.Scene {
       ctx.lineWidth = 4;
       ctx.strokeRect(24, 12, 8, 12);
     });
+    this.makeTexture("power-bestie", 38, 38, (ctx) => {
+      ctx.fillStyle = COLORS.mint;
+      ctx.fillRect(2, 2, 34, 34);
+      ctx.fillStyle = COLORS.ink;
+      ctx.fillRect(8, 8, 9, 9);
+      ctx.fillRect(22, 8, 9, 9);
+      ctx.fillRect(6, 20, 13, 11);
+      ctx.fillRect(20, 20, 13, 11);
+      ctx.fillStyle = COLORS.white;
+      ctx.fillRect(11, 11, 3, 3);
+      ctx.fillRect(25, 11, 3, 3);
+    });
     this.makeTexture("power-headphones", 36, 36, (ctx) => {
       ctx.strokeStyle = COLORS.purple;
       ctx.lineWidth = 6;
@@ -437,47 +454,24 @@ class OfficeScene extends Phaser.Scene {
       ctx.fillRect(7, 19, 6, 6);
       ctx.fillRect(25, 19, 6, 6);
     });
-  }
-
-  private drawPlayerTexture(image?: HTMLImageElement) {
-    const accent = this.avatar.accent || DEFAULT_AVATAR.accent;
-    this.makeTexture("chip-player", 38, 62, (ctx) => {
-      ctx.fillStyle = COLORS.ink;
-      ctx.fillRect(8, 0, 24, 7);
-      ctx.fillRect(4, 4, 30, 5);
-      ctx.fillStyle = "#c98f62";
-      ctx.fillRect(8, 7, 22, 19);
-      if (image) {
-        ctx.save();
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(image, 8, 6, 22, 22);
-        ctx.restore();
-      } else {
-        ctx.fillStyle = COLORS.ink;
-        ctx.fillRect(12, 13, 4, 5);
-        ctx.fillRect(23, 13, 4, 5);
-        ctx.fillRect(16, 21, 8, 3);
-      }
+    this.makeTexture("bestie-bob", 44, 66, (ctx) => {
+      this.drawPerson(ctx, 44, 66, COLORS.mint, COLORS.yellow, false);
+      ctx.fillStyle = "#6f4328";
+      ctx.fillRect(8, 0, 28, 8);
       ctx.fillStyle = COLORS.white;
-      ctx.fillRect(5, 26, 28, 24);
-      ctx.fillStyle = accent;
-      ctx.fillRect(17, 26, 6, 24);
+      ctx.fillRect(9, 12, 10, 3);
+      ctx.fillRect(25, 12, 10, 3);
       ctx.fillStyle = COLORS.ink;
-      ctx.fillRect(7, 50, 10, 12);
-      ctx.fillRect(23, 50, 10, 12);
-      ctx.fillStyle = "#7a4a2b";
-      ctx.fillRect(0, 31, 7, 22);
-      ctx.fillStyle = COLORS.yellow;
-      ctx.fillRect(1, 32, 5, 6);
+      ctx.fillRect(17, 12, 10, 2);
+      ctx.fillRect(20, 20, 7, 3);
     });
-    if (this.player) this.player.setTexture("chip-player");
   }
 
   private createWorld() {
     this.cameras.main.setBackgroundColor(0x080c18);
-    this.wall = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, QUARTERS[0].wall);
+    this.wall = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, LEVELS[0].wall);
     this.wall.setDepth(-20);
-    this.glow = this.add.rectangle(GAME_WIDTH / 2, 205, GAME_WIDTH, 290, QUARTERS[0].accent, 0.06);
+    this.glow = this.add.rectangle(GAME_WIDTH / 2, 205, GAME_WIDTH, 290, LEVELS[0].accent, 0.06);
     this.glow.setDepth(-19);
 
     this.skyline = this.add.tileSprite(GAME_WIDTH / 2, 248, GAME_WIDTH, 240, "skyline-pattern");
@@ -530,34 +524,49 @@ class OfficeScene extends Phaser.Scene {
   }
 
   private createPlayer() {
-    this.player = this.physics.add.sprite(148, GROUND_Y - 31, "chip-player");
-    this.player.setDepth(15).setOrigin(0.5);
+    if (!this.anims.exists("joi-running")) {
+      this.anims.create({
+        key: "joi-running",
+        frames: this.anims.generateFrameNumbers("joi-run", { start: 0, end: 7 }),
+        frameRate: 9,
+        repeat: -1,
+      });
+    }
+    this.player = this.physics.add.sprite(148, GROUND_Y - 44, "joi-idle");
+    this.player.setDepth(15).setOrigin(0.5, 0.5).setScale(this.joiScale);
     this.player.setGravityY(1720).setCollideWorldBounds(true);
-    (this.player.body as Phaser.Physics.Arcade.Body).setSize(28, 54).setOffset(5, 6);
+    (this.player.body as Phaser.Physics.Arcade.Body).setSize(78, 168).setOffset(57, 26);
     this.physics.add.collider(this.player, this.ground);
   }
 
   private bindInputs() {
     const keyboard = this.input.keyboard;
     if (keyboard) {
+      keyboard.addCapture([
+        Phaser.Input.Keyboard.KeyCodes.SPACE,
+        Phaser.Input.Keyboard.KeyCodes.UP,
+        Phaser.Input.Keyboard.KeyCodes.DOWN,
+      ]);
       const jump = (event: KeyboardEvent) => {
+        event.preventDefault();
         if (!event.repeat) this.handleJump();
       };
       keyboard.on("keydown-SPACE", jump);
       keyboard.on("keydown-W", jump);
       keyboard.on("keydown-UP", jump);
-      keyboard.on("keyup-SPACE", () => this.releaseJump());
+      keyboard.on("keyup-SPACE", (event: KeyboardEvent) => { event.preventDefault(); this.releaseJump(); });
       keyboard.on("keyup-W", () => this.releaseJump());
-      keyboard.on("keyup-UP", () => this.releaseJump());
-      keyboard.on("keydown-DOWN", () => this.setDucking(true));
+      keyboard.on("keyup-UP", (event: KeyboardEvent) => { event.preventDefault(); this.releaseJump(); });
+      keyboard.on("keydown-DOWN", (event: KeyboardEvent) => { event.preventDefault(); this.setDucking(true); });
       keyboard.on("keydown-S", () => this.setDucking(true));
-      keyboard.on("keyup-DOWN", () => this.setDucking(false));
+      keyboard.on("keyup-DOWN", (event: KeyboardEvent) => { event.preventDefault(); this.setDucking(false); });
       keyboard.on("keyup-S", () => this.setDucking(false));
       keyboard.on("keydown-P", () => this.togglePause());
       keyboard.on("keydown-ESC", () => this.togglePause());
       keyboard.on("keydown-E", () => this.usePowerUp());
       keyboard.on("keydown-ENTER", () => {
-        if (this.screen === "menu" || this.screen === "gameover") this.startRun();
+        if (this.screen === "menu" || this.screen === "gameover") this.startRun(this.level);
+        else if (this.screen === "levelcomplete") this.startRun(this.level + 1);
         else this.usePowerUp();
       });
     }
@@ -572,7 +581,10 @@ class OfficeScene extends Phaser.Scene {
   private handleCommand(command: GameCommand) {
     switch (command.type) {
       case "start":
-        this.startRun();
+        this.startRun(command.level ?? this.level);
+        break;
+      case "menu":
+        this.showMenu();
         break;
       case "jump":
         this.handleJump();
@@ -592,47 +604,49 @@ class OfficeScene extends Phaser.Scene {
       case "settings":
         this.settings = { ...command.settings };
         break;
-      case "avatar":
-        this.applyAvatar(command.avatar);
-        break;
-      case "hydrate-best":
+      case "hydrate-progress":
         this.best = Math.max(this.best, command.best);
+        this.unlockedLevel = Math.max(this.unlockedLevel, Math.min(LEVELS.length, command.unlockedLevel));
         this.emitStats(true);
         break;
     }
   }
 
-  private startRun() {
+  private startRun(requestedLevel = 1) {
     this.clearRunObjects();
+    this.level = Math.max(1, Math.min(this.unlockedLevel, Math.floor(requestedLevel)));
     this.screen = "playing";
     this.elapsed = 0;
     this.runTime = 0;
     this.score = 0;
-    this.sanity = this.settings.hardcore ? 1 : 3;
+    this.socialBattery = 100;
     this.streak = 0;
     this.tasksAvoided = 0;
     this.distance = 0;
+    this.coffees = 0;
+    this.bestieActive = false;
     this.review = "";
     this.newBest = false;
     this.heldPower = null;
     this.powerRemaining = 0;
     this.spawnTimer = 1.2;
-    this.pickupTimer = 7.5;
-    this.lastAbsoluteQuarter = 0;
+    this.pickupTimer = 5.5;
+    this.coffeeTimer = 3.2;
+    this.bossSpawned = false;
     this.lastHazard = null;
     this.invulnerableRemaining = 0;
     this.peopleShieldRemaining = 0;
     this.slowRemaining = 0;
-    this.coffeeRemaining = 0;
     this.wfhRemaining = 0;
     this.jumpsUsed = 0;
     this.setDucking(false);
-    this.player.clearTint().setAlpha(1).setAngle(0).setScale(1).setPosition(148, GROUND_Y - 31);
+    this.player.setTexture("joi-run", 0).play("joi-running", true);
+    this.player.clearTint().setAlpha(1).setAngle(0).setScale(this.joiScale).setPosition(148, GROUND_Y - 44);
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setVelocity(0, 0).setEnable(true);
+    body.setSize(78, 168).setOffset(57, 26).setVelocity(0, 0).setEnable(true);
     this.physics.resume();
-    this.setQuarterLook(1);
-    this.showCallout("CLOCKED IN. BAD DECISION.", COLORS.blue);
+    this.setLevelLook(this.level);
+    this.showCallout(`LEVEL ${this.level} · ${getLevel(this.level).name}`, COLORS.blue);
     this.ensureMusic();
     this.playSfx("sfx-click", 0.55);
     this.emitStats(true);
@@ -646,12 +660,28 @@ class OfficeScene extends Phaser.Scene {
     this.boss?.destroy();
     this.boss = null;
     this.bossRemaining = 0;
+    this.bestie?.destroy();
+    this.bestie = null;
+    this.bestieActive = false;
     this.homeOverlay.setAlpha(0);
+  }
+
+  private showMenu() {
+    this.clearRunObjects();
+    this.screen = "menu";
+    this.physics.pause();
+    this.player.anims.stop();
+    this.player.setTexture("joi-idle").clearTint().setAlpha(1).setAngle(0).setScale(this.joiScale).setPosition(148, GROUND_Y - 44);
+    this.emitStats(true);
   }
 
   private handleJump() {
     if (this.screen === "menu" || this.screen === "gameover") {
-      this.startRun();
+      this.startRun(this.level);
+      return;
+    }
+    if (this.screen === "levelcomplete") {
+      this.startRun(this.level + 1);
       return;
     }
     if (this.screen === "paused") {
@@ -683,11 +713,11 @@ class OfficeScene extends Phaser.Scene {
     const grounded = body.blocked.down || body.touching.down;
     this.ducking = Boolean(active && grounded && this.screen === "playing");
     if (this.ducking) {
-      this.player.setScale(1.08, 0.68).setAngle(-4);
-      body.setSize(30, 34).setOffset(4, 25);
+      this.player.setScale(this.joiScale * 1.08, this.joiScale * 0.68).setAngle(-4);
+      body.setSize(116, 112).setOffset(38, 72);
     } else {
-      this.player.setScale(1).setAngle(0);
-      body.setSize(28, 54).setOffset(5, 6);
+      this.player.setScale(this.joiScale).setAngle(0);
+      body.setSize(78, 168).setOffset(57, 26);
     }
   }
 
@@ -709,10 +739,13 @@ class OfficeScene extends Phaser.Scene {
     const rawDelta = Math.min(deltaMs / 1000, 0.04);
     this.updateBackdrop(rawDelta);
     this.updatePlayerVisuals();
+    this.updateBestie();
 
     if (this.screen !== "playing") return;
 
-    const difficulty = getDifficulty(this.elapsed);
+    const levelDefinition = getLevel(this.level);
+    const progress = clamp(this.distance / levelDefinition.targetDistance, 0, 1);
+    const difficulty = getLevelDifficulty(this.level, progress);
     this.worldSpeed = difficulty.speed;
     const timeScale = this.slowRemaining > 0 ? 0.53 : 1;
     const delta = rawDelta * timeScale;
@@ -720,16 +753,20 @@ class OfficeScene extends Phaser.Scene {
     this.elapsed += rawDelta;
     this.runTime += rawDelta;
     this.distance += this.worldSpeed * rawDelta * 0.015;
-    const scoreBoost = this.coffeeRemaining > 0 ? 2 : 1;
-    this.score += rawDelta * this.worldSpeed * 0.09 * getMultiplier(this.streak) * scoreBoost;
+    this.score += rawDelta * this.worldSpeed * 0.09 * getMultiplier(this.streak);
 
     this.tickEffects(rawDelta);
-    this.tickQuarter(difficulty.absoluteQuarter, difficulty.quarter);
     this.tickSpawns(delta, difficulty.spawnGap);
     this.updateHazards(delta);
     this.updatePickups(delta);
+    if (levelDefinition.boss && !this.bossSpawned && progress >= 0.66) this.startBoss();
     this.tickBoss(delta);
     this.tickMusic();
+
+    if (this.distance >= levelDefinition.targetDistance && (!levelDefinition.boss || (this.bossSpawned && this.bossRemaining <= 0))) {
+      this.completeLevel();
+      return;
+    }
 
     this.stateEmitTimer -= rawDelta;
     if (this.stateEmitTimer <= 0) this.emitStats();
@@ -749,6 +786,7 @@ class OfficeScene extends Phaser.Scene {
 
   private updatePlayerVisuals() {
     if (!this.player?.body) return;
+    if (this.screen !== "playing") return;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     const grounded = body.blocked.down || body.touching.down;
     if (grounded && !this.ducking) {
@@ -769,46 +807,40 @@ class OfficeScene extends Phaser.Scene {
     this.invulnerableRemaining = Math.max(0, this.invulnerableRemaining - delta);
     this.peopleShieldRemaining = Math.max(0, this.peopleShieldRemaining - delta);
     this.slowRemaining = Math.max(0, this.slowRemaining - delta);
-    this.coffeeRemaining = Math.max(0, this.coffeeRemaining - delta);
     this.wfhRemaining = Math.max(0, this.wfhRemaining - delta);
     this.powerRemaining = Math.max(
       this.peopleShieldRemaining,
       this.slowRemaining,
-      this.coffeeRemaining,
       this.wfhRemaining,
     );
 
     const homeAlpha = this.wfhRemaining > 0 ? 0.1 + Math.sin(this.runTime * 8) * 0.04 : 0;
     this.homeOverlay.setAlpha(homeAlpha);
-    if (this.coffeeRemaining > 0) this.player.setTint(0xffd447);
-    else if (this.peopleShieldRemaining > 0) this.player.setTint(0x9d7bff);
+    if (this.peopleShieldRemaining > 0) this.player.setTint(0x9d7bff);
     else if (this.wfhRemaining > 0) this.player.setTint(0xff82c8);
     else this.player.clearTint();
   }
 
-  private tickQuarter(absoluteQuarter: number, quarter: number) {
-    if (absoluteQuarter === this.lastAbsoluteQuarter) return;
-    this.lastAbsoluteQuarter = absoluteQuarter;
-    this.setQuarterLook(quarter);
-    const fiscalYear = Math.floor(absoluteQuarter / 4) + 1;
-    this.showCallout(`FY${fiscalYear} · Q${quarter}  ${QUARTERS[quarter - 1].name}`, COLORS.yellow);
-    this.playSfx("sfx-milestone", 0.62, 0.92 + quarter * 0.04);
-    if (quarter === 4) this.startBoss();
-  }
-
-  private setQuarterLook(quarter: number) {
-    const look = QUARTERS[quarter - 1];
+  private setLevelLook(level: number) {
+    const look = getLevel(level);
     this.wall.setFillStyle(look.wall);
-    this.glow.setFillStyle(look.accent, quarter === 4 ? 0.13 : 0.07);
+    this.glow.setFillStyle(look.accent, level === LEVELS.length ? 0.13 : 0.07);
     if (!this.settings.reducedMotion) {
       this.cameras.main.flash(160, 99, 217, 255, false);
     }
   }
 
   private tickSpawns(delta: number, baseGap: number) {
-    if (this.bossRemaining > 0) return;
     this.spawnTimer -= delta;
     this.pickupTimer -= delta;
+    this.coffeeTimer -= delta;
+
+    if (this.coffeeTimer <= 0) {
+      this.spawnCoffee();
+      this.coffeeTimer = Phaser.Math.FloatBetween(4.2, 6.8);
+    }
+
+    if (this.bossRemaining > 0) return;
 
     if (this.spawnTimer <= 0) {
       this.spawnPattern();
@@ -817,12 +849,12 @@ class OfficeScene extends Phaser.Scene {
     }
     if (this.pickupTimer <= 0) {
       this.spawnPickup();
-      this.pickupTimer = Phaser.Math.FloatBetween(12, 18);
+      this.pickupTimer = Phaser.Math.FloatBetween(9, 13);
     }
   }
 
   private spawnPattern() {
-    const unlocked = getUnlockedEnemies(this.elapsed);
+    const unlocked = getLevelEnemies(this.level);
     let kind = Phaser.Utils.Array.GetRandom(unlocked);
     if (kind === this.lastHazard && unlocked.length > 1) {
       kind = Phaser.Utils.Array.GetRandom(unlocked.filter((candidate) => candidate !== this.lastHazard));
@@ -955,7 +987,7 @@ class OfficeScene extends Phaser.Scene {
   private hitHazard(hazard: Hazard) {
     const family = ENEMIES[hazard.kind].family;
     const protectedByHeadphones = family === "people" && this.peopleShieldRemaining > 0;
-    const protectedByPhase = this.invulnerableRemaining > 0 || this.wfhRemaining > 0 || this.coffeeRemaining > 0;
+    const protectedByPhase = this.invulnerableRemaining > 0 || this.wfhRemaining > 0;
     if (protectedByHeadphones || protectedByPhase) {
       hazard.hit = true;
       hazard.object.setAlpha(0.35);
@@ -963,21 +995,32 @@ class OfficeScene extends Phaser.Scene {
       return;
     }
 
+    if (this.bestieActive) {
+      hazard.hit = true;
+      hazard.object.setAlpha(0.35);
+      this.score += 90;
+      this.sacrificeBestie();
+      return;
+    }
+
     hazard.hit = true;
-    this.sanity -= 1;
+    this.socialBattery = Math.max(0, this.socialBattery - (this.settings.hardcore ? 100 : 34));
     this.streak = 0;
     this.invulnerableRemaining = 1.45;
     this.player.setTint(0xff5c8a);
     this.burst(this.player.x + 8, this.player.y, 0xff6b6b, 11);
     this.playSfx("sfx-hit", 0.7, 0.92);
     if (!this.settings.reducedMotion) this.cameras.main.shake(135, 0.006);
-    this.showCallout(this.sanity > 0 ? "SANITY -1" : "PERFORMANCE REVIEW DUE", COLORS.coral);
-    if (this.sanity <= 0) this.endRun();
+    this.showCallout(
+      this.socialBattery > 0 ? `SOCIAL BATTERY -${this.settings.hardcore ? 100 : 34}%` : "SOCIAL BATTERY: EMPTY",
+      COLORS.coral,
+    );
+    if (this.socialBattery <= 0) this.endRun();
   }
 
   private getPlayerRect() {
-    const height = this.ducking ? 30 : 50;
-    const width = this.ducking ? 32 : 26;
+    const height = this.ducking ? 34 : 66;
+    const width = this.ducking ? 44 : 34;
     return new Phaser.Geom.Rectangle(
       this.player.x - width / 2,
       this.player.y - height / 2 + (this.ducking ? 11 : 1),
@@ -987,7 +1030,7 @@ class OfficeScene extends Phaser.Scene {
   }
 
   private spawnPickup() {
-    const kinds: PowerUpKind[] = ["coffee", "headphones", "pto", "inbox", "wfh"];
+    const kinds: PowerUpKind[] = ["bestie", "bestie", "headphones", "pto", "inbox", "wfh"];
     const kind = Phaser.Utils.Array.GetRandom(kinds);
     const sprite = this.add.image(0, 0, `power-${kind}`);
     const label = this.add
@@ -1004,6 +1047,22 @@ class OfficeScene extends Phaser.Scene {
     this.pickups.push({ object, kind, phase: Phaser.Math.FloatBetween(0, Math.PI * 2) });
   }
 
+  private spawnCoffee() {
+    const sprite = this.add.image(0, 0, "power-coffee");
+    const label = this.add
+      .text(0, 27, "+34%", {
+        fontFamily: "'Press Start 2P'",
+        fontSize: "6px",
+        color: COLORS.yellow,
+        backgroundColor: COLORS.ink,
+        padding: { x: 4, y: 3 },
+      })
+      .setOrigin(0.5, 0);
+    const lane = Phaser.Math.RND.pick([GROUND_Y - 132, GROUND_Y - 164, GROUND_Y - 190]);
+    const object = this.add.container(GAME_WIDTH + 70, lane, [sprite, label]).setDepth(10);
+    this.pickups.push({ object, kind: "coffee", phase: Phaser.Math.FloatBetween(0, Math.PI * 2) });
+  }
+
   private updatePickups(delta: number) {
     const playerRect = this.getPlayerRect();
     for (const pickup of this.pickups) {
@@ -1013,7 +1072,7 @@ class OfficeScene extends Phaser.Scene {
       pickup.object.angle = this.settings.reducedMotion ? 0 : Math.sin(pickup.phase) * 4;
       const pickupRect = new Phaser.Geom.Rectangle(pickup.object.x - 19, pickup.object.y - 19, 38, 38);
       if (Phaser.Geom.Intersects.RectangleToRectangle(playerRect, pickupRect)) {
-        this.collectPowerUp(pickup);
+        this.collectPickup(pickup);
         pickup.object.x = -300;
       }
     }
@@ -1022,17 +1081,64 @@ class OfficeScene extends Phaser.Scene {
     this.pickups = this.pickups.filter((pickup) => pickup.object.x >= -80);
   }
 
-  private collectPowerUp(pickup: Pickup) {
-    this.burst(pickup.object.x, pickup.object.y, POWER_UPS[pickup.kind].color, 12);
+  private collectPickup(pickup: Pickup) {
+    const color = pickup.kind === "coffee" ? 0xffd447 : POWER_UPS[pickup.kind].color;
+    this.burst(pickup.object.x, pickup.object.y, color, 12);
     this.playSfx("sfx-power", 0.62, 1.04);
-    this.showCallout(POWER_UPS[pickup.kind].label, `#${POWER_UPS[pickup.kind].color.toString(16).padStart(6, "0")}`);
     if (pickup.kind === "coffee") {
-      this.coffeeRemaining = 5.8;
-      this.powerRemaining = this.coffeeRemaining;
+      this.socialBattery = Math.min(100, this.socialBattery + 34);
+      this.coffees += 1;
+      this.showCallout("COFFEE ACQUIRED · BATTERY +34%", COLORS.yellow);
+    } else if (pickup.kind === "bestie") {
+      this.activateBestie();
     } else {
+      this.showCallout(POWER_UPS[pickup.kind].label, `#${color.toString(16).padStart(6, "0")}`);
       this.heldPower = pickup.kind;
     }
     this.score += 125;
+  }
+
+  private activateBestie() {
+    this.bestie?.destroy();
+    const sprite = this.add.image(0, 0, "bestie-bob");
+    const tag = this.add
+      .text(0, -46, "BESTIE BOB", {
+        fontFamily: "'Press Start 2P'",
+        fontSize: "6px",
+        color: COLORS.ink,
+        backgroundColor: COLORS.mint,
+        padding: { x: 4, y: 3 },
+      })
+      .setOrigin(0.5);
+    this.bestie = this.add.container(this.player.x - 64, GROUND_Y - 34, [sprite, tag]).setDepth(14);
+    this.bestieActive = true;
+    this.showCallout("BESTIE BOB JOINED THE RUN", COLORS.mint);
+  }
+
+  private updateBestie() {
+    if (!this.bestie || !this.bestieActive || !this.player) return;
+    this.bestie.x = Phaser.Math.Linear(this.bestie.x, this.player.x - 66, 0.12);
+    this.bestie.y = GROUND_Y - 34 + (this.settings.reducedMotion ? 0 : Math.sin(this.runTime * 10) * 3);
+    this.bestie.angle = this.settings.reducedMotion ? 0 : Math.sin(this.runTime * 8) * 2;
+  }
+
+  private sacrificeBestie() {
+    if (!this.bestie) return;
+    this.bestieActive = false;
+    const bob = this.bestie;
+    this.bestie = null;
+    this.burst(bob.x, bob.y, 0x67e8a5, 18);
+    this.playSfx("sfx-milestone", 0.72, 0.82);
+    this.showCallout("BESTIE BOB TOOK THE MEETING FOR YOU", COLORS.mint);
+    this.tweens.add({
+      targets: bob,
+      x: bob.x - 60,
+      y: bob.y - 90,
+      angle: -24,
+      alpha: 0,
+      duration: this.settings.reducedMotion ? 80 : 520,
+      onComplete: () => bob.destroy(),
+    });
   }
 
   private usePowerUp() {
@@ -1067,7 +1173,8 @@ class OfficeScene extends Phaser.Scene {
   }
 
   private startBoss() {
-    if (this.bossRemaining > 0) return;
+    if (this.bossRemaining > 0 || this.bossSpawned) return;
+    this.bossSpawned = true;
     this.bossRemaining = 17;
     this.bossProjectileTimer = 1.2;
     const sprite = this.add.image(0, 0, "enemy-boss");
@@ -1120,8 +1227,27 @@ class OfficeScene extends Phaser.Scene {
     const finalScore = Math.floor(this.score);
     this.newBest = finalScore > this.best;
     this.best = Math.max(this.best, finalScore);
-    this.player.setTint(0xff5c8a).setAngle(88).setAlpha(1);
+    this.player.anims.stop();
+    this.player.setTexture("joi-sad").clearTint().setAngle(0).setAlpha(1).setScale(this.joiScale);
     this.showCallout("LOGGED OFF INVOLUNTARILY", COLORS.coral);
+    this.emitStats(true);
+  }
+
+  private completeLevel() {
+    if (this.screen !== "playing") return;
+    const finalScore = Math.floor(this.score);
+    this.newBest = finalScore > this.best;
+    this.best = Math.max(this.best, finalScore);
+    this.unlockedLevel = Math.max(this.unlockedLevel, Math.min(LEVELS.length, this.level + 1));
+    this.screen = this.level === LEVELS.length ? "gamecomplete" : "levelcomplete";
+    this.review = this.level === LEVELS.length
+      ? "Joi escaped the org chart. Her calendar is now accepting apologies only."
+      : `${getLevel(this.level).name} cleared. People Ops has described this as “concerningly agile.”`;
+    this.physics.pause();
+    this.player.anims.stop();
+    this.player.setTexture("joi-celebrate").clearTint().setAngle(0).setAlpha(1).setScale(this.joiScale);
+    this.showCallout(this.level === LEVELS.length ? "OUT OF OFFICE: PERMANENT" : `LEVEL ${this.level} CLEARED`, COLORS.mint);
+    this.playSfx("sfx-milestone", 0.82, 1.2);
     this.emitStats(true);
   }
 
@@ -1198,37 +1324,26 @@ class OfficeScene extends Phaser.Scene {
     }
   }
 
-  private applyAvatar(avatar: AvatarProfile) {
-    this.avatar = { ...avatar };
-    const loadId = ++this.avatarLoadId;
-    if (!avatar.dataUrl) {
-      this.drawPlayerTexture();
-      return;
-    }
-    const image = new Image();
-    image.onload = () => {
-      if (loadId === this.avatarLoadId) this.drawPlayerTexture(image);
-    };
-    image.onerror = () => this.drawPlayerTexture();
-    image.src = avatar.dataUrl;
-  }
-
   private emitStats(immediate = false) {
     if (!immediate && this.stateEmitTimer > 0) return;
     this.stateEmitTimer = 0.1;
-    const difficulty = getDifficulty(this.elapsed);
+    const levelDefinition = getLevel(this.level);
     const stats: GameStats = {
       ...INITIAL_STATS,
       screen: this.screen,
       score: Math.floor(this.score),
       best: this.best,
-      sanity: this.sanity,
+      socialBattery: this.socialBattery,
       streak: this.streak,
       multiplier: getMultiplier(this.streak),
-      quarter: difficulty.quarter,
-      fiscalYear: difficulty.fiscalYear,
+      level: this.level,
+      levelName: levelDefinition.name,
+      levelProgress: clamp(this.distance / levelDefinition.targetDistance, 0, 1),
+      unlockedLevel: this.unlockedLevel,
       tasksAvoided: this.tasksAvoided,
       distance: Math.floor(this.distance),
+      coffees: this.coffees,
+      bestieActive: this.bestieActive,
       powerUp: this.heldPower,
       powerRemaining: Math.ceil(this.powerRemaining),
       review: this.review,

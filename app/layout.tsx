@@ -13,11 +13,11 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(origin),
     title: "Office Run — Escape the 9-to-5",
     description:
-      "Jump meetings, duck emails, dodge coworkers, and protect your last three points of sanity in this free pixel-art endless runner.",
+      "Run with Joi through five chaotic office levels, catch coffee, recruit Bestie Bob, and protect your Social Battery.",
     applicationName: "Office Run",
     manifest: "/manifest.webmanifest",
     authors: [{ name: "Anonymous" }],
-    keywords: ["endless runner", "pixel game", "office game", "browser game", "retro game"],
+    keywords: ["runner game", "pixel game", "office game", "browser game", "retro game"],
     icons: {
       icon: "/icon-192.png",
       shortcut: "/icon-192.png",
@@ -25,17 +25,17 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       title: "Office Run — Escape the 9-to-5",
-      description: "Dodge meetings. Duck emails. Keep your sanity.",
+      description: "Five office levels. One Social Battery. Bestie Bob has your back.",
       type: "website",
       siteName: "Office Run",
       url: origin,
-      images: [{ url: `${origin}/og.png`, width: 1659, height: 948, alt: "Office Run pixel-art game" }],
+      images: [{ url: `${origin}/og-joi.png`, width: 1660, height: 948, alt: "Joi running through the Office Run campaign" }],
     },
     twitter: {
       card: "summary_large_image",
       title: "Office Run — Escape the 9-to-5",
-      description: "Dodge meetings. Duck emails. Keep your sanity.",
-      images: [`${origin}/og.png`],
+      description: "Five office levels. One Social Battery. Bestie Bob has your back.",
+      images: [`${origin}/og-joi.png`],
     },
   };
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "office-run-v1";
+const CACHE_NAME = "office-run-v2";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -7,6 +7,10 @@ const CORE_ASSETS = [
   "/assets/office/tileset.png",
   "/assets/office/player.png",
   "/assets/office/boss.png",
+  "/assets/joi/joi-run.png",
+  "/assets/joi/joi-idle.png",
+  "/assets/joi/joi-celebrate.png",
+  "/assets/joi/joi-sad.png",
   "/audio/click.ogg",
   "/audio/jump.ogg",
   "/audio/powerup.ogg",

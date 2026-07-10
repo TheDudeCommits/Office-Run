@@ -1,81 +1,50 @@
 # Office Run Implementation Plan
 
-This file is the authoritative build loop. A phase is complete only when every item is checked and the evidence listed beneath it exists.
+This checklist records the current five-level campaign build. A phase is complete only when its code, tests, and browser evidence agree.
 
-## Phase 0 — Pre-production and legal safety
+## Phase 1 — Campaign model
 
-- [x] Lock the creative brief and recommended defaults.
-- [x] Write the full game design document.
-- [x] Research free assets and verify their licenses at the source.
-- [x] Pull the selected CC0 office art and UI audio into the project.
-- [x] Create `ASSETS.md` with source, author, license, file mapping, and modifications.
-- [x] Define privacy behavior for photo avatars; do not require or expose an API key.
+- [x] Replace the endless fiscal-quarter loop with five finite levels.
+- [x] Give every level a target distance, speed curve, spawn curve, palette, and enemy roster.
+- [x] Add locked progression, level select, level-complete, and campaign-complete states.
+- [x] Keep the Circle-Back Boss as the level-five finale.
 
-**Evidence:** `docs/GDD.md`, `ASSETS.md`, `public/assets/office/`, `public/audio/`.
+## Phase 2 — Joi character integration
 
-## Phase 1 — Product shell and game foundation
+- [x] Preserve the supplied source GIF and WebP sprite sheet.
+- [x] Build an eight-frame transparent Joi run sheet from the supplied GIF.
+- [x] Extract idle, celebration, and failure poses from the supplied sprite sheet.
+- [x] Replace Chip with Joi in the Phaser scene, menu, copy, and documentation.
+- [x] Tune Joi’s display scale and collision box independently.
 
-- [x] Replace the starter preview with the Office Run title screen and responsive game shell.
-- [x] Add Phaser as a client-only game runtime.
-- [x] Create the 960×540 pixel-art world, parallax office, floor, lighting, and CRT treatment.
-- [x] Add Chip Deadline with run, jump, double-jump, duck, and damage states.
-- [x] Add keyboard and touch input with accessible external controls.
-- [x] Establish React ↔ game state events for HUD and overlays.
+## Phase 3 — Social Battery and recovery
 
-**Exit gate:** a player can start, move, pause, resume, and restart a run without console errors.
+- [x] Replace heart/sanity HP with a 0–100% Social Battery.
+- [x] Remove 34% on ordinary collision and preserve optional one-hit mode.
+- [x] Spawn coffee frequently in demanding aerial lanes.
+- [x] Restore 34% Social Battery per coffee, capped at 100%.
+- [x] Add coffee count and battery state to HUD/results/accessibility output.
 
-## Phase 2 — Endless runner systems
+## Phase 4 — Bestie Bob
 
-- [x] Implement continuous speed ramp and safe procedural spawn scheduling.
-- [x] Implement sanity, invulnerability, collisions, scoring, streaks, and close-call bonuses.
-- [x] Add at least eight mechanically distinct office hazards.
-- [x] Add readable speech tells and corporate copy.
-- [x] Add quarter/fiscal-year progression and environment palette shifts.
-- [x] Add game-over performance reviews and instant retry.
+- [x] Add Bob as an automatic-use collectible.
+- [x] Render Bob running alongside Joi after collection.
+- [x] Resolve existing shields before Bob’s save.
+- [x] Make Bob absorb one otherwise-damaging collision and play a sacrifice exit.
+- [x] Surface Bob’s active status in the HUD.
 
-**Exit gate:** a complete run progresses, becomes harder, ends correctly, and can restart repeatedly.
+## Phase 5 — Input and interface polish
 
-## Phase 3 — Power-ups and boss pressure
-
-- [x] Add Coffee, Headphones, PTO, Inbox Zero, and Work From Home.
-- [x] Add held-power-up activation and HUD timers.
-- [x] Add authored Reply-All Storm patterns.
-- [x] Add Circle-Back Boss events with multi-step attacks.
-- [x] Prevent impossible obstacle combinations at all supported speeds.
-
-**Exit gate:** every power-up changes play, and at least one boss cycle can be reached and survived.
-
-## Phase 4 — Personalization and persistence
-
-- [x] Add local photo upload, crop, palette quantization, and pixel-avatar generation.
-- [x] Keep processing entirely on-device and discard the source image after conversion.
-- [x] Add custom cosmetic palette and playful local profile title.
-- [x] Add reset-to-Chip behavior.
-- [x] Persist avatar output, preferences, high score, and recent runs locally.
-
-**Exit gate:** a user can create, play with, reload, and remove a custom avatar without a network upload.
-
-## Phase 5 — Juice, audio, accessibility, and responsive polish
-
-- [x] Integrate licensed CC0 SFX and procedural chiptune music.
-- [x] Add particles, hit feedback, milestone stingers, and restrained screen shake.
-- [x] Add separate music/SFX toggles, pause, and reduced-motion mode.
-- [x] Add strong focus states, semantic controls, readable contrast, and non-color hazard cues.
-- [x] Polish desktop, landscape mobile, and portrait fallback layouts.
-- [x] Add site metadata, favicon, and bespoke social preview card.
-
-**Exit gate:** the game is comfortable, readable, and polished across input modes and breakpoints.
+- [x] Capture Space, Arrow Up, and Arrow Down inside Phaser.
+- [x] Add a capture-phase browser guard so gameplay keys cannot scroll the page.
+- [x] Update menu, HUD, result screens, controls, recent attempts, and mobile layout.
+- [x] Keep pause, audio, reduced motion, touch controls, and held benefits working.
 
 ## Phase 6 — Verification and release
 
-- [x] Add deterministic unit tests for helpers and game data.
-- [x] Replace starter tests with product-specific rendered-output checks.
-- [x] Run lint, tests, and production build; resolve failures.
-- [x] Verify the complete game flow in a real browser, including mobile layout and the local avatar conversion path.
-- [x] Confirm zero secrets, starter artifacts, unclear-license assets, or broken links are committed.
-- [x] Update README with controls, architecture, privacy, licenses, and local development.
-- [x] Commit and push the completed project to `AmirTheDude69/Office-Run`.
-- [x] Deploy publicly and verify the production URL.
-- [x] Perform a requirement-by-requirement completion audit.
-
-**Exit gate:** GitHub contains the verified source and the public URL supports a complete play session.
+- [x] Update GDD, README, asset ledger, manifest, service worker, and product metadata.
+- [x] Update deterministic campaign and rendered-product tests.
+- [x] Run the complete typecheck, lint, build, and test suite.
+- [x] Verify menu, Joi animation, jump/duck, no-scroll controls, retry, and responsive layout in a real browser.
+- [ ] Push the verified update to `AmirTheDude69/Office-Run`.
+- [ ] Redeploy and verify the public production URL.
