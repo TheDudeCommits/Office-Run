@@ -152,4 +152,4 @@ Only one manual benefit can be held. Coffee and Bob activate immediately and do 
 - Social Battery, coffee recovery, Bestie Bob, held benefits, scoring, pause, and persistence work.
 - Space and arrow controls do not move the browser page.
 - Current desktop/mobile browsers render a complete playable flow with no console errors.
-- Source is pushed to `AmirTheDude69/Office-Run` and the public URL is updated.
+- Source is pushed to `TheDudeCommits/Office-Run` and the public URL is updated.
